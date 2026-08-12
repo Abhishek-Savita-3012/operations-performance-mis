@@ -1,0 +1,14 @@
+Metric,Value
+Total Received,174513.0
+Total Processed,138582.0
+Total Pending,39116.0
+Total Errors,5911.0
+Total Rework,2842.0
+Productivity,11.19
+Productivity %,74.63
+Accuracy %,95.73
+Error Rate %,4.27
+Rework Rate %,2.05
+SLA %,91.29
+Attendance %,94.57
+Absenteeism %,4.39
