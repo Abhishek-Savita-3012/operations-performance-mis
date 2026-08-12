@@ -1,23 +1,40 @@
-# Operations MIS Data Dictionary
+# Operations Performance MIS — Data Dictionary
 
-| Column | Meaning | Example |
-|---|---|---|
-| Record ID | Unique operational row ID | REC000001 |
-| Employee ID | Unique employee identifier | EMP001 |
-| Employee Name | Employee name | Employee 001 |
-| Team | Operations team | Team A |
-| Process | Process handled | Document Verification |
-| Date | Work date | 2026-07-01 |
-| Shift | Employee shift | Morning |
-| Records Received | Incoming workload | 125 |
-| Records Processed | Completed records | 115 |
-| Records Pending | Remaining workload | 10 |
-| Errors | Incorrect records | 3 |
-| Rework | Records requiring correction | 4 |
-| SLA Target | Target records within SLA | 110 |
-| SLA Achieved | Records meeting SLA | 106 |
-| Processing Time | Average processing time | 4.2 |
-| Working Hours | Actual working hours | 8 |
-| Quality Score | Quality percentage | 97.4 |
-| Attendance | Attendance status | Present |
-| Status | Processing status | Completed |
+## Employee Master
+
+| Column | Description |
+|---|---|
+| Employee ID | Unique identifier assigned to each employee |
+| Employee Name | Employee name |
+| Team | Operations team assigned to the employee |
+| Process | Business process handled by the employee |
+| Shift | Employee working shift |
+| Joining Date | Employee joining date |
+| Skill Level | Employee skill classification |
+| Performance Band | High, Average or Low performance classification |
+| Standard Working Hours | Standard daily working hours |
+| Active | Indicates whether the employee is currently active |
+
+## Operations Data
+
+| Column | Description |
+|---|---|
+| Record ID | Unique identifier for each employee-day operational record |
+| Employee ID | Employee associated with the operational record |
+| Employee Name | Employee name |
+| Team | Operations team |
+| Process | Business process |
+| Date | Operational date |
+| Shift | Working shift |
+| Records Received | Number of records received by the employee |
+| Records Processed | Number of records processed |
+| Records Pending | Records remaining from the employee's allocated workload |
+| Errors | Number of records containing errors |
+| Rework | Number of records requiring rework |
+| SLA Target | Target SLA percentage |
+| SLA Achieved | Number of processed records achieved within SLA |
+| Processing Time | Average processing time per record |
+| Working Hours | Actual working hours for the employee |
+| Quality Score | Employee quality score percentage |
+| Attendance | Employee attendance status |
+| Status | Operational completion status |
