@@ -2,6 +2,7 @@ import pandas as pd
 from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.formatting.rule import CellIsRule
 from openpyxl.utils import get_column_letter
 
 
@@ -11,13 +12,8 @@ from openpyxl.utils import get_column_letter
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-PROCESSED_DATA_DIR = (
-    BASE_DIR / "data" / "processed"
-)
-
-REPORTS_DIR = (
-    BASE_DIR / "reports"
-)
+PROCESSED_DATA_DIR = BASE_DIR / "data" / "processed"
+REPORTS_DIR = BASE_DIR / "reports"
 
 REPORTS_DIR.mkdir(
     parents=True,
@@ -71,6 +67,7 @@ BACKLOG_FILE = (
 
 PRODUCTIVITY_BENCHMARK = 15
 SLA_TARGET = 95
+HIGH_ERROR_THRESHOLD = 5
 
 
 # ============================================================
@@ -81,25 +78,11 @@ print("\n" + "=" * 60)
 print("LOADING MANAGEMENT DATA")
 print("=" * 60)
 
-operations = pd.read_csv(
-    OPERATIONS_FILE
-)
-
-team = pd.read_csv(
-    TEAM_FILE
-)
-
-shift = pd.read_csv(
-    SHIFT_FILE
-)
-
-daily = pd.read_csv(
-    DAILY_FILE
-)
-
-employees = pd.read_csv(
-    EMPLOYEE_FILE
-)
+operations = pd.read_csv(OPERATIONS_FILE)
+team = pd.read_csv(TEAM_FILE)
+shift = pd.read_csv(SHIFT_FILE)
+daily = pd.read_csv(DAILY_FILE)
+employees = pd.read_csv(EMPLOYEE_FILE)
 
 operations["Date"] = pd.to_datetime(
     operations["Date"]
@@ -109,25 +92,11 @@ daily["Date"] = pd.to_datetime(
     daily["Date"]
 )
 
-print(
-    f"\nOperations rows: {len(operations)}"
-)
-
-print(
-    f"Daily rows: {len(daily)}"
-)
-
-print(
-    f"Teams: {len(team)}"
-)
-
-print(
-    f"Shifts: {len(shift)}"
-)
-
-print(
-    f"Employees: {len(employees)}"
-)
+print(f"\nOperations rows: {len(operations)}")
+print(f"Daily rows: {len(daily)}")
+print(f"Teams: {len(team)}")
+print(f"Shifts: {len(shift)}")
+print(f"Employees: {len(employees)}")
 
 
 # ============================================================
@@ -152,16 +121,11 @@ daily_backlog = (
 )
 
 daily_backlog["Opening Backlog"] = 0
-
 daily_backlog["Closing Backlog"] = 0
-
 
 opening_backlog = 0
 
-
-for index in range(
-    len(daily_backlog)
-):
+for index in range(len(daily_backlog)):
 
     received = daily_backlog.loc[
         index,
@@ -227,20 +191,16 @@ daily_backlog.to_csv(
 # 7. SELECT LATEST MIS DATE
 # ============================================================
 
-latest_date = (
-    daily["Date"].max()
-)
+latest_date = daily["Date"].max()
 
 print(
     f"\nMIS Date: "
     f"{latest_date.strftime('%d-%b-%Y')}"
 )
 
-
 latest_daily = daily[
     daily["Date"] == latest_date
 ].iloc[0]
-
 
 latest_backlog = daily_backlog[
     daily_backlog["Date"] == latest_date
@@ -252,13 +212,9 @@ latest_backlog = daily_backlog[
 # ============================================================
 
 received = latest_daily["Received"]
-
 processed = latest_daily["Processed"]
-
 pending = latest_daily["Pending"]
-
 errors = latest_daily["Errors"]
-
 rework = latest_daily["Rework"]
 
 working_hours = latest_daily[
@@ -269,6 +225,10 @@ sla_achieved = latest_daily[
     "SLA_Achieved"
 ]
 
+attendance = latest_daily[
+    "Attendance"
+]
+
 
 productivity = (
     processed /
@@ -277,13 +237,11 @@ productivity = (
     else 0
 )
 
-
 productivity_pct = (
     productivity /
     PRODUCTIVITY_BENCHMARK
     * 100
 )
-
 
 accuracy = (
     (
@@ -296,7 +254,6 @@ accuracy = (
     else 0
 )
 
-
 error_rate = (
     errors /
     processed
@@ -304,7 +261,6 @@ error_rate = (
     if processed > 0
     else 0
 )
-
 
 rework_rate = (
     rework /
@@ -314,7 +270,6 @@ rework_rate = (
     else 0
 )
 
-
 sla_pct = (
     sla_achieved /
     processed
@@ -322,11 +277,6 @@ sla_pct = (
     if processed > 0
     else 0
 )
-
-
-attendance = latest_daily[
-    "Attendance"
-]
 
 
 # ============================================================
@@ -358,7 +308,6 @@ lowest_sla_shift = shift.loc[
     shift["SLA %"].idxmin()
 ]
 
-
 lowest_productivity_shift = shift.loc[
     shift["Productivity %"].idxmin()
 ]
@@ -367,8 +316,6 @@ lowest_productivity_shift = shift.loc[
 # ============================================================
 # 11. FIND HIGH-ERROR EMPLOYEES
 # ============================================================
-
-HIGH_ERROR_THRESHOLD = 5
 
 high_error_employees = employees[
     employees["Error Rate %"]
@@ -445,8 +392,8 @@ recommended_actions.append(
 )
 
 recommended_actions.append(
-    f"Review high-error employee cases and "
-    f"identify recurring error patterns."
+    "Review high-error employee cases and "
+    "identify recurring error patterns."
 )
 
 recommended_actions.append(
@@ -490,6 +437,11 @@ white_font = Font(
     color="FFFFFF"
 )
 
+kpi_value_font = Font(
+    bold=True,
+    size=16
+)
+
 header_fill = PatternFill(
     "solid",
     fgColor="1F4E78"
@@ -505,6 +457,21 @@ kpi_fill = PatternFill(
     fgColor="EAF2F8"
 )
 
+good_fill = PatternFill(
+    "solid",
+    fgColor="C6EFCE"
+)
+
+warning_fill = PatternFill(
+    "solid",
+    fgColor="FFEB9C"
+)
+
+bad_fill = PatternFill(
+    "solid",
+    fgColor="FFC7CE"
+)
+
 thin_border = Border(
     left=Side(style="thin"),
     right=Side(style="thin"),
@@ -514,402 +481,43 @@ thin_border = Border(
 
 
 # ============================================================
-# 16. EXECUTIVE MIS SHEET
+# 16. HELPER FUNCTIONS
 # ============================================================
 
-ws = workbook.active
+def style_table_sheet(worksheet):
 
-ws.title = "Daily MIS"
-
-ws.merge_cells(
-    "A1:H1"
-)
-
-ws["A1"] = "OPERATIONS DAILY MIS"
-
-ws["A1"].font = title_font
-
-ws["A1"].alignment = Alignment(
-    horizontal="center"
-)
-
-
-ws.merge_cells(
-    "A2:H2"
-)
-
-ws["A2"] = (
-    f"Date: "
-    f"{latest_date.strftime('%d-%b-%Y')}"
-)
-
-ws["A2"].alignment = Alignment(
-    horizontal="center"
-)
-
-
-# ============================================================
-# 17. KPI SECTION
-# ============================================================
-
-ws["A4"] = "KEY PERFORMANCE INDICATORS"
-
-ws["A4"].font = section_font
-
-ws["A4"].fill = section_fill
-
-
-kpis = [
-
-    ("Total Received", received, "#,##0"),
-
-    ("Total Processed", processed, "#,##0"),
-
-    ("Pending", pending, "#,##0"),
-
-    ("Closing Backlog",
-     latest_backlog["Closing Backlog"],
-     "#,##0"),
-
-    ("SLA Achievement",
-     sla_pct / 100,
-     "0.0%"),
-
-    ("Quality",
-     accuracy / 100,
-     "0.0%"),
-
-    ("Productivity",
-     productivity_pct / 100,
-     "0.0%"),
-
-    ("Error Rate",
-     error_rate / 100,
-     "0.0%"),
-
-    ("Attendance",
-     attendance / 100,
-     "0.0%")
-]
-
-
-row = 5
-
-for metric, value, number_format in kpis:
-
-    ws.cell(
-        row=row,
-        column=1,
-        value=metric
-    )
-
-    ws.cell(
-        row=row,
-        column=1
-    ).font = header_font
-
-    ws.cell(
-        row=row,
-        column=2,
-        value=value
-    )
-
-    ws.cell(
-        row=row,
-        column=2
-    ).number_format = number_format
-
-    ws.cell(
-        row=row,
-        column=2
-    ).fill = kpi_fill
-
-    row += 1
-
-
-# ============================================================
-# 18. BACKLOG INFORMATION
-# ============================================================
-
-ws["D4"] = "BACKLOG STATUS"
-
-ws["D4"].font = section_font
-
-ws["D4"].fill = section_fill
-
-
-backlog_info = [
-
-    ("Opening Backlog",
-     latest_backlog["Opening Backlog"]),
-
-    ("Received",
-     latest_backlog["Received"]),
-
-    ("Processed",
-     latest_backlog["Processed"]),
-
-    ("Closing Backlog",
-     latest_backlog["Closing Backlog"]),
-
-    ("Backlog Change",
-     latest_backlog["Backlog Change"])
-]
-
-
-row = 5
-
-for metric, value in backlog_info:
-
-    ws.cell(
-        row=row,
-        column=4,
-        value=metric
-    )
-
-    ws.cell(
-        row=row,
-        column=4
-    ).font = header_font
-
-    ws.cell(
-        row=row,
-        column=5,
-        value=value
-    )
-
-    ws.cell(
-        row=row,
-        column=5
-    ).number_format = "#,##0"
-
-    row += 1
-
-
-# ============================================================
-# 19. KEY ISSUES
-# ============================================================
-
-ws["A16"] = "KEY ISSUES"
-
-ws["A16"].font = section_font
-
-ws["A16"].fill = section_fill
-
-
-row = 17
-
-for issue in key_issues:
-
-    ws.cell(
-        row=row,
-        column=1,
-        value="• " + issue
-    )
-
-    ws.merge_cells(
-        start_row=row,
-        start_column=1,
-        end_row=row,
-        end_column=8
-    )
-
-    row += 1
-
-
-# ============================================================
-# 20. RECOMMENDED ACTIONS
-# ============================================================
-
-action_start = row + 1
-
-ws.cell(
-    row=action_start,
-    column=1,
-    value="RECOMMENDED ACTIONS"
-)
-
-ws.cell(
-    row=action_start,
-    column=1
-).font = section_font
-
-ws.cell(
-    row=action_start,
-    column=1
-).fill = section_fill
-
-
-row = action_start + 1
-
-for action in recommended_actions:
-
-    ws.cell(
-        row=row,
-        column=1,
-        value="• " + action
-    )
-
-    ws.merge_cells(
-        start_row=row,
-        start_column=1,
-        end_row=row,
-        end_column=8
-    )
-
-    row += 1
-
-
-# ============================================================
-# 21. TEAM PERFORMANCE SHEET
-# ============================================================
-
-team_ws = workbook.create_sheet(
-    "Team Performance"
-)
-
-team_ws.append(
-    list(team.columns)
-)
-
-for cell in team_ws[1]:
-
-    cell.font = white_font
-    cell.fill = header_fill
-    cell.alignment = Alignment(
-        horizontal="center"
-    )
-
-
-for record in team.itertuples(
-    index=False,
-    name=None
-):
-
-    team_ws.append(
-        list(record)
-    )
-
-
-# ============================================================
-# 22. SHIFT PERFORMANCE SHEET
-# ============================================================
-
-shift_ws = workbook.create_sheet(
-    "Shift Performance"
-)
-
-shift_ws.append(
-    list(shift.columns)
-)
-
-for cell in shift_ws[1]:
-
-    cell.font = white_font
-    cell.fill = header_fill
-    cell.alignment = Alignment(
-        horizontal="center"
-    )
-
-
-for record in shift.itertuples(
-    index=False,
-    name=None
-):
-
-    shift_ws.append(
-        list(record)
-    )
-
-
-# ============================================================
-# 23. DAILY BACKLOG SHEET
-# ============================================================
-
-backlog_ws = workbook.create_sheet(
-    "Daily Backlog"
-)
-
-backlog_ws.append(
-    list(daily_backlog.columns)
-)
-
-for cell in backlog_ws[1]:
-
-    cell.font = white_font
-    cell.fill = header_fill
-    cell.alignment = Alignment(
-        horizontal="center"
-    )
-
-
-for record in daily_backlog.itertuples(
-    index=False,
-    name=None
-):
-
-    backlog_ws.append(
-        list(record)
-    )
-
-
-# ============================================================
-# 24. EMPLOYEE PERFORMANCE SHEET
-# ============================================================
-
-employee_ws = workbook.create_sheet(
-    "Employee Performance"
-)
-
-employee_ws.append(
-    list(employees.columns)
-)
-
-for cell in employee_ws[1]:
-
-    cell.font = white_font
-    cell.fill = header_fill
-    cell.alignment = Alignment(
-        horizontal="center"
-    )
-
-
-for record in employees.itertuples(
-    index=False,
-    name=None
-):
-
-    employee_ws.append(
-        list(record)
-    )
-
-
-# ============================================================
-# 25. FORMAT ALL SHEETS
-# ============================================================
-
-for worksheet in workbook.worksheets:
-
+    worksheet.sheet_view.showGridLines = False
     worksheet.freeze_panes = "A2"
 
-    for row_cells in worksheet.iter_rows():
+    for cell in worksheet[1]:
+
+        cell.font = white_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(
+            horizontal="center",
+            vertical="center"
+        )
+        cell.border = thin_border
+
+    for row_cells in worksheet.iter_rows(
+        min_row=2
+    ):
 
         for cell in row_cells:
 
             cell.border = thin_border
-
             cell.alignment = Alignment(
                 vertical="center"
             )
+
+    worksheet.auto_filter.ref = worksheet.dimensions
 
     for column_cells in worksheet.columns:
 
         max_length = 0
 
-        column_letter = (
-            get_column_letter(
-                column_cells[0].column
-            )
+        column_letter = get_column_letter(
+            column_cells[0].column
         )
 
         for cell in column_cells:
@@ -928,21 +536,621 @@ for worksheet in workbook.worksheets:
             35
         )
 
+    worksheet.row_dimensions[1].height = 24
+
+
+def add_kpi_card(
+    worksheet,
+    label,
+    value,
+    number_format,
+    row,
+    column
+):
+
+    # Label row
+    label_cell = worksheet.cell(
+        row=row,
+        column=column,
+        value=label
+    )
+
+    label_cell.font = header_font
+    label_cell.fill = section_fill
+    label_cell.alignment = Alignment(
+        horizontal="center",
+        vertical="center"
+    )
+    label_cell.border = thin_border
+
+    # Value row
+    value_cell = worksheet.cell(
+        row=row + 1,
+        column=column,
+        value=value
+    )
+
+    value_cell.font = kpi_value_font
+    value_cell.fill = kpi_fill
+    value_cell.number_format = number_format
+    value_cell.alignment = Alignment(
+        horizontal="center",
+        vertical="center"
+    )
+    value_cell.border = thin_border
+
+    # Second column of the card
+    label_cell_2 = worksheet.cell(
+        row=row,
+        column=column + 1
+    )
+
+    value_cell_2 = worksheet.cell(
+        row=row + 1,
+        column=column + 1
+    )
+
+    label_cell_2.fill = section_fill
+    label_cell_2.border = thin_border
+
+    value_cell_2.fill = kpi_fill
+    value_cell_2.border = thin_border
+
+    worksheet.merge_cells(
+        start_row=row,
+        start_column=column,
+        end_row=row,
+        end_column=column + 1
+    )
+
+    worksheet.merge_cells(
+        start_row=row + 1,
+        start_column=column,
+        end_row=row + 1,
+        end_column=column + 1
+    )
+
 
 # ============================================================
-# 26. SPECIAL FORMATTING
+# 17. EXECUTIVE MIS SHEET
 # ============================================================
 
-ws.freeze_panes = "A5"
+ws = workbook.active
+ws.title = "Daily MIS"
 
-ws.column_dimensions["A"].width = 28
-ws.column_dimensions["B"].width = 18
-ws.column_dimensions["D"].width = 25
-ws.column_dimensions["E"].width = 18
+ws.merge_cells("A1:H1")
+
+ws["A1"] = "OPERATIONS DAILY MIS"
+
+ws["A1"].font = title_font
+
+ws["A1"].alignment = Alignment(
+    horizontal="center",
+    vertical="center"
+)
+
+ws.merge_cells("A2:H2")
+
+ws["A2"] = (
+    f"Date: "
+    f"{latest_date.strftime('%d-%b-%Y')}"
+)
+
+ws["A2"].alignment = Alignment(
+    horizontal="center",
+    vertical="center"
+)
+
+ws["A2"].font = Font(
+    italic=True,
+    size=11
+)
 
 
 # ============================================================
-# 27. SAVE WORKBOOK
+# 18. KPI CARDS
+# ============================================================
+
+add_kpi_card(
+    ws,
+    "TOTAL RECEIVED",
+    received,
+    "#,##0",
+    4,
+    1
+)
+
+add_kpi_card(
+    ws,
+    "TOTAL PROCESSED",
+    processed,
+    "#,##0",
+    4,
+    3
+)
+
+add_kpi_card(
+    ws,
+    "PENDING",
+    pending,
+    "#,##0",
+    4,
+    5
+)
+
+add_kpi_card(
+    ws,
+    "CLOSING BACKLOG",
+    latest_backlog["Closing Backlog"],
+    "#,##0",
+    4,
+    7
+)
+
+add_kpi_card(
+    ws,
+    "SLA ACHIEVEMENT",
+    sla_pct / 100,
+    "0.00%",
+    7,
+    1
+)
+
+add_kpi_card(
+    ws,
+    "QUALITY",
+    accuracy / 100,
+    "0.00%",
+    7,
+    3
+)
+
+add_kpi_card(
+    ws,
+    "PRODUCTIVITY",
+    productivity_pct / 100,
+    "0.00%",
+    7,
+    5
+)
+
+add_kpi_card(
+    ws,
+    "ATTENDANCE",
+    attendance / 100,
+    "0.00%",
+    7,
+    7
+)
+
+
+# ============================================================
+# 19. KPI CONDITIONAL FORMATTING
+# ============================================================
+
+# SLA
+ws.conditional_formatting.add(
+    "A8",
+    CellIsRule(
+        operator="lessThan",
+        formula=["0.95"],
+        fill=bad_fill
+    )
+)
+
+ws.conditional_formatting.add(
+    "A8",
+    CellIsRule(
+        operator="greaterThanOrEqual",
+        formula=["0.95"],
+        fill=good_fill
+    )
+)
+
+# Quality
+ws.conditional_formatting.add(
+    "C8",
+    CellIsRule(
+        operator="lessThan",
+        formula=["0.95"],
+        fill=bad_fill
+    )
+)
+
+ws.conditional_formatting.add(
+    "C8",
+    CellIsRule(
+        operator="greaterThanOrEqual",
+        formula=["0.95"],
+        fill=good_fill
+    )
+)
+
+# Productivity
+ws.conditional_formatting.add(
+    "E8",
+    CellIsRule(
+        operator="lessThan",
+        formula=["0.75"],
+        fill=bad_fill
+    )
+)
+
+ws.conditional_formatting.add(
+    "E8",
+    CellIsRule(
+        operator="between",
+        formula=["0.75", "0.999999"],
+        fill=warning_fill
+    )
+)
+
+ws.conditional_formatting.add(
+    "E8",
+    CellIsRule(
+        operator="greaterThanOrEqual",
+        formula=["1"],
+        fill=good_fill
+    )
+)
+
+# Attendance
+ws.conditional_formatting.add(
+    "G8",
+    CellIsRule(
+        operator="lessThan",
+        formula=["0.95"],
+        fill=warning_fill
+    )
+)
+
+ws.conditional_formatting.add(
+    "G8",
+    CellIsRule(
+        operator="greaterThanOrEqual",
+        formula=["0.95"],
+        fill=good_fill
+    )
+)
+
+
+# ============================================================
+# 20. BACKLOG STATUS
+# ============================================================
+
+ws.merge_cells("A11:H11")
+
+ws["A11"] = "BACKLOG STATUS"
+
+ws["A11"].font = section_font
+
+ws["A11"].fill = section_fill
+
+ws["A11"].alignment = Alignment(
+    horizontal="center"
+)
+
+backlog_headers = [
+    "Opening Backlog",
+    "Received",
+    "Processed",
+    "Closing Backlog",
+    "Backlog Change"
+]
+
+backlog_values = [
+    latest_backlog["Opening Backlog"],
+    latest_backlog["Received"],
+    latest_backlog["Processed"],
+    latest_backlog["Closing Backlog"],
+    latest_backlog["Backlog Change"]
+]
+
+for index, header in enumerate(
+    backlog_headers,
+    start=1
+):
+
+    cell = ws.cell(
+        row=12,
+        column=index,
+        value=header
+    )
+
+    cell.font = white_font
+    cell.fill = header_fill
+    cell.alignment = Alignment(
+        horizontal="center"
+    )
+    cell.border = thin_border
+
+
+for index, value in enumerate(
+    backlog_values,
+    start=1
+):
+
+    cell = ws.cell(
+        row=13,
+        column=index,
+        value=value
+    )
+
+    cell.number_format = "#,##0"
+
+    cell.alignment = Alignment(
+        horizontal="center"
+    )
+
+    cell.border = thin_border
+
+    cell.fill = kpi_fill
+
+
+# Positive backlog change = warning
+ws.conditional_formatting.add(
+    "E13",
+    CellIsRule(
+        operator="greaterThan",
+        formula=["0"],
+        fill=warning_fill
+    )
+)
+
+# Zero/negative change = good
+ws.conditional_formatting.add(
+    "E13",
+    CellIsRule(
+        operator="lessThanOrEqual",
+        formula=["0"],
+        fill=good_fill
+    )
+)
+
+
+# ============================================================
+# 21. KEY ISSUES
+# ============================================================
+
+ws.merge_cells("A16:H16")
+
+ws["A16"] = "KEY ISSUES"
+
+ws["A16"].font = section_font
+
+ws["A16"].fill = section_fill
+
+row = 17
+
+for issue in key_issues:
+
+    ws.merge_cells(
+        start_row=row,
+        start_column=1,
+        end_row=row,
+        end_column=8
+    )
+
+    cell = ws.cell(
+        row=row,
+        column=1,
+        value="• " + issue
+    )
+
+    cell.alignment = Alignment(
+        wrap_text=True,
+        vertical="center"
+    )
+
+    row += 1
+
+
+# ============================================================
+# 22. RECOMMENDED ACTIONS
+# ============================================================
+
+action_start = row + 1
+
+ws.merge_cells(
+    start_row=action_start,
+    start_column=1,
+    end_row=action_start,
+    end_column=8
+)
+
+ws.cell(
+    row=action_start,
+    column=1,
+    value="RECOMMENDED ACTIONS"
+)
+
+ws.cell(
+    row=action_start,
+    column=1
+).font = section_font
+
+ws.cell(
+    row=action_start,
+    column=1
+).fill = section_fill
+
+row = action_start + 1
+
+for action in recommended_actions:
+
+    ws.merge_cells(
+        start_row=row,
+        start_column=1,
+        end_row=row,
+        end_column=8
+    )
+
+    cell = ws.cell(
+        row=row,
+        column=1,
+        value="• " + action
+    )
+
+    cell.alignment = Alignment(
+        wrap_text=True,
+        vertical="center"
+    )
+
+    row += 1
+
+
+# ============================================================
+# 23. SUPPORTING SHEET HELPER
+# ============================================================
+
+def create_data_sheet(
+    workbook,
+    sheet_name,
+    dataframe
+):
+
+    worksheet = workbook.create_sheet(
+        sheet_name
+    )
+
+    worksheet.append(
+        list(dataframe.columns)
+    )
+
+    for record in dataframe.itertuples(
+        index=False,
+        name=None
+    ):
+
+        worksheet.append(
+            list(record)
+        )
+
+    style_table_sheet(
+        worksheet
+    )
+
+    return worksheet
+
+
+# ============================================================
+# 24. SUPPORTING SHEETS
+# ============================================================
+
+team_ws = create_data_sheet(
+    workbook,
+    "Team Performance",
+    team
+)
+
+shift_ws = create_data_sheet(
+    workbook,
+    "Shift Performance",
+    shift
+)
+
+backlog_ws = create_data_sheet(
+    workbook,
+    "Daily Backlog",
+    daily_backlog
+)
+
+employee_ws = create_data_sheet(
+    workbook,
+    "Employee Performance",
+    employees
+)
+
+
+# ============================================================
+# 25. DAILY MIS FORMATTING
+# ============================================================
+
+ws.sheet_view.showGridLines = False
+
+ws.freeze_panes = "A4"
+
+for column in [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H"
+]:
+
+    ws.column_dimensions[column].width = 18
+
+
+ws.row_dimensions[1].height = 30
+ws.row_dimensions[2].height = 22
+
+for row_number in [
+    4,
+    7,
+    11,
+    16
+]:
+
+    ws.row_dimensions[
+        row_number
+    ].height = 24
+
+
+for row_number in [
+    5,
+    8
+]:
+
+    ws.row_dimensions[
+        row_number
+    ].height = 30
+
+
+for row_number in range(
+    17,
+    ws.max_row + 1
+):
+
+    ws.row_dimensions[
+        row_number
+    ].height = 26
+
+
+# Apply borders/alignment to executive sheet
+for row_cells in ws.iter_rows():
+
+    for cell in row_cells:
+
+        if cell.value is not None:
+
+            cell.border = thin_border
+
+            if cell.alignment is None:
+
+                cell.alignment = Alignment(
+                    vertical="center"
+                )
+
+
+# Print settings
+ws.page_setup.orientation = "landscape"
+
+ws.page_setup.fitToWidth = 1
+
+ws.page_setup.fitToHeight = 0
+
+ws.sheet_properties.pageSetUpPr.fitToPage = True
+
+ws.print_area = (
+    f"A1:H{ws.max_row}"
+)
+
+
+# ============================================================
+# 26. SAVE WORKBOOK
 # ============================================================
 
 workbook.save(
@@ -951,7 +1159,7 @@ workbook.save(
 
 
 # ============================================================
-# 28. FINAL OUTPUT
+# 27. FINAL OUTPUT
 # ============================================================
 
 print("\n" + "=" * 60)
@@ -959,7 +1167,7 @@ print("DAILY MIS REPORT CREATED SUCCESSFULLY")
 print("=" * 60)
 
 print(
-    f"\nReport created:"
+    "\nReport created:"
 )
 
 print(
