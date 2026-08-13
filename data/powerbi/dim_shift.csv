@@ -1,0 +1,5 @@
+Shift,Received,Processed,Errors,Rework,SLA_Achieved,Working_Hours,Attendance,Productivity,Productivity %,Accuracy %,Error Rate %,Rework Rate %,SLA %
+Afternoon,47850,37148,1447,825,33235,3134.0,95.73,11.85,79.02,96.1,3.9,2.22,89.47
+General,47110,38594,1875,717,35034,3663.5,93.29,10.53,70.23,95.14,4.86,1.86,90.78
+Morning,30610,24697,1055,476,22757,2152.5,94.08,11.47,76.49,95.73,4.27,1.93,92.14
+Night,48943,38143,1534,824,35484,3430.0,95.23,11.12,74.14,95.98,4.02,2.16,93.03
