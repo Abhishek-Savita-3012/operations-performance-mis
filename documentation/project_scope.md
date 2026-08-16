@@ -59,6 +59,8 @@ The project will contain approximately 1,500 fictional operational records cover
 2. Employee Performance
 3. Quality & SLA
 4. Attendance & Workforce
+5. Backlog Management
+6. Management Summary
 
 ## Management Use Case
 
